@@ -14,5 +14,6 @@ RoxygenNote: 7.2.3
 URL: https://github.com/JoFrhwld/wormypath
 BugReports: https://github.com/JoFrhwld/wormypath/issues
 Imports: 
+    collapse,
     ggplot2,
     marginaleffects
