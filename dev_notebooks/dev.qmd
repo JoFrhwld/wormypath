@@ -1,0 +1,93 @@
+---
+title: "usethis history"
+format: markdown
+editor: visual
+knitr: 
+  opts_chunk: 
+    eval: false
+---
+
+## Purpose
+
+As much as possible, we should use `{useths}` and other related packages to manage package infrastructure.
+
+## Install packages
+
+```{r}
+renv::restore()
+```
+
+## Setup
+
+```{r}
+usethis::git_vaccinate()
+```
+
+## Description File
+
+```{r}
+desc::desc_coerce_authors_at_r()
+usethis::use_roxygen_md()
+```
+
+### Descripton & Title
+
+```{r}
+desc::desc_set(
+  "Title",
+  "Wormy Paths"
+)
+```
+
+```{r}
+desc::desc_set(
+  "Description",
+  "This will make wormy paths."
+)
+```
+
+### License
+
+```{r}
+# usethis::use_gpl3_license()
+# usethis::use_mit_license()
+```
+
+### Authors
+
+```{r}
+usethis::use_author(
+  given = "Josef",
+  family = "Fruehwald",
+  email = "jofrhwld@gmail.com",
+  role = c("aut","cre")
+)
+```
+
+```{r}
+# usethis::use_author(
+#   given = "foo",
+#   family = "bar",
+#   email = "foobar@gmail.com",
+#   role = c("aut","cre")
+# )
+```
+
+### Misc
+
+```{r}
+roxygen2::roxygenize(here::here())
+```
+
+## GitHub
+
+```{r}
+# run once
+# usethis::use_readme_rmd()
+```
+
+```{r}
+# run once
+```
+
+## Packages
