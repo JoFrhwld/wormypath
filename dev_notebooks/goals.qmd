@@ -1,0 +1,241 @@
+---
+title: "Project Goals"
+format: gfm
+editor: visual
+---
+
+## Goals 
+
+A package to generate wormy paths.
+
+## How will it work?
+
+### From data -\> plot
+
+```{r}
+#| eval: false
+# not run
+data |> 
+  ggplot(aes(x, y, z))+
+    stat_wormpath()
+```
+
+```{r}
+#| eval: false
+# not run 
+data |> 
+  ggplot(aes(x, y, z))+
+    stat_wormpath(
+      aes(color = z, 
+          linewidth = after_stat(inv_dist)),
+      method = mgcv,
+      formula = list(x ~ s(z), y ~ s(z)),
+      method.args = list(family = mvn(d=2))
+    )
+```
+
+```{r}
+#| eval: false
+# not run 
+data |> 
+  ggplot(aes(x, y, z))+
+    stat_wormpath(
+      aes(color = z,
+          linewidth = after_stat(inv_dist)),
+      method = brms,
+      formula = mvbind(x,y) ~ s(z) + set_rescor(TRUE),
+      method.args = list(file = "ggplotfit", cores = 4)
+      ## the file argument would have to be augmented to 
+      ## reflect the grouping...
+    )
+```
+
+```{r}
+#| eval: false
+# not run 
+pre_computed |> 
+  ggplot(aes(x, y, z = z))+
+    geom_wormpath(
+      aes(color = z,
+          linewidth = inv_dist)
+    )
+```
+
+### From model -\> plot
+
+```{r}
+#| eval: false
+gam(
+  list(
+    x ~ s(z),
+    y ~ s(z)
+  ),
+  data = data,
+  family = mvn(d=2)
+)->model
+
+wormplot(
+  model,
+  variable = "z",
+  n = 100
+)
+```
+
+```{r}
+#| eval: false
+gam(
+  list(
+    x ~ s(z) + g,
+    y ~ s(z) + g
+  ),
+  data = data,
+  family = mvn(d=2)
+)->model
+
+wormplot(
+  model,
+  variable = "z",
+  by = "g",
+  n = 100
+)
+```
+
+## Ideas
+
+```{r}
+library(palmerpenguins)
+library(mgcv)
+library(ggplot2)
+library(marginaleffects)
+```
+
+### with mgcv
+
+```{r}
+gam(
+  list(
+    bill_length_mm ~ s(body_mass_g),
+    bill_depth_mm ~ s(body_mass_g)
+  ),
+  data = penguins,
+  family = mvn(d = 2)
+)->model
+```
+
+```{r}
+predictions(model, 
+            newdata = datagrid(body_mass_g = \(x){
+              modelr::seq_range(x, n = 100)
+            }
+            )
+) |> 
+  as.data.frame() |> 
+  dplyr::select(rowid, 
+                group, 
+                estimate) |> 
+  tidyr::pivot_wider(names_from = "group", 
+                     values_from = "estimate") |> 
+  ggplot(aes(`1`, `2`))+
+  geom_point()+
+    geom_path()
+```
+
+```{r}
+mod_preds <- predictions(model,
+                         newdata = datagrid(body_mass_g = \(x) {
+                           modelr::seq_range(x, n = 100)
+                         }
+                         )
+)
+mod_slopes <- slopes(model, 
+                     newdata = datagrid(body_mass_g = \(x){
+                       modelr::seq_range(x, n = 100)
+                     }
+                     )
+)
+```
+
+```{r}
+mod_slopes |> 
+  as.data.frame() |> 
+  dplyr::select(rowid, 
+                group, 
+                body_mass_g, 
+                estimate) |> 
+  tidyr::pivot_wider(names_from = "group",
+                     values_from = "estimate") |> 
+  dplyr::mutate(
+    dist = sqrt(`1`^2 + `2`^2)
+  ) |> 
+  dplyr::select(rowid, dist) ->
+  distances
+```
+
+```{r}
+mod_preds |> 
+  as.data.frame() |> 
+  dplyr::select(rowid, 
+                group, 
+                body_mass_g, 
+                estimate) |> 
+  tidyr::pivot_wider(names_from = "group", 
+                     values_from = "estimate") |>
+  dplyr::left_join(distances) |> 
+  ggplot(aes(`1`, `2`))+
+    geom_point(aes(size = 1/dist, color = body_mass_g))+
+    geom_path()
+```
+
+```{r}
+mod_preds |> 
+  as.data.frame() |> 
+  dplyr::select(rowid, 
+                group, 
+                body_mass_g, 
+                estimate) |> 
+  tidyr::pivot_wider(names_from = "group",
+                     values_from = "estimate") |>
+  dplyr::left_join(distances) |> 
+  ggplot(aes(`1`, `2`))+
+    #geom_point(aes(size = 1/dist, color = body_mass_g))+
+    geom_path(aes(linewidth = 1/dist,
+                  color = body_mass_g),
+              lineend = "round")+
+    scale_color_viridis_c()
+```
+
+### with brms
+
+```{r}
+library(brms)
+```
+
+```{r}
+brm(
+  mvbind(bill_length_mm, bill_depth_mm) ~ s(body_mass_g),
+  data = penguins,
+  backend = "cmdstanr",
+  file = "brm0",
+  cores = 4
+) ->
+  brm0_mod
+```
+
+```{r}
+predictions(brm0_mod, 
+            newdata = datagrid(body_mass_g = \(x){
+              modelr::seq_range(x, n = 100)
+            }
+            )
+) |> 
+  as.data.frame() |> 
+  dplyr::select(rowid, 
+                group, 
+                estimate) |> 
+  tidyr::pivot_wider(names_from = "group", 
+                     values_from = "estimate") |> 
+  ggplot(aes(billlengthmm, billdepthmm))+
+  geom_point()+
+  geom_path()
+```
+
