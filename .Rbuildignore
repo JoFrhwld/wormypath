@@ -4,3 +4,4 @@
 ^\.Rproj\.user$
 ^dev_notebooks
 ^README\.Rmd$
+^\.github$

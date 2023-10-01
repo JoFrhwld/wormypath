@@ -4,6 +4,8 @@
 # wormypath
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/JoFrhwld/wormypath/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/JoFrhwld/wormypath/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of wormypath is to …

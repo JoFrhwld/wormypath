@@ -91,4 +91,18 @@ roxygen2::roxygenize(here::here())
 #usethis::use_github()
 ```
 
+```{r}
+# run once
+usethis::use_github_action(name = "check-standard")
+```
+
+Eventually:
+
+```{r}
+# run once, eventually
+# usethis::use_pkgdown()
+# usethis::use_pkgdown_github_pages()
+# usethis::use_logo("logo.svg")
+```
+
 ## Packages
