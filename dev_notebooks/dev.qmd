@@ -106,3 +106,29 @@ Eventually:
 ```
 
 ## Packages
+
+### Depends
+
+If we use the native pipe, `|>`
+
+```{r}
+usethis::use_package("R", type = "Depends", min_version = "4.1")
+```
+
+### Imports
+
+Anything we use in the code
+
+```{r}
+# probably
+usethis::use_package("ggplot2")
+usethis::use_package("marginaleffects")
+```
+
+### Suggests
+
+Anything we use just in vignettes, examples.
+
+```{r}
+#usethis::use_package("pkg", type = "Suggests")
+```
