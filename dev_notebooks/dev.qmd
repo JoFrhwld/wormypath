@@ -123,6 +123,7 @@ Anything we use in the code
 # probably
 usethis::use_package("ggplot2")
 usethis::use_package("marginaleffects")
+usethis::use_package("collapse")
 ```
 
 ### Suggests
