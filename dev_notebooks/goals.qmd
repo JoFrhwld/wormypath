@@ -4,7 +4,7 @@ format: gfm
 editor: visual
 ---
 
-## Goals 
+## Goals
 
 A package to generate wormy paths.
 
@@ -107,19 +107,32 @@ library(palmerpenguins)
 library(mgcv)
 library(ggplot2)
 library(marginaleffects)
+library(wormypath)
 ```
 
 ### with mgcv
 
 ```{r}
 gam(
-  list(
+ list(
     bill_length_mm ~ s(body_mass_g),
-    bill_depth_mm ~ s(body_mass_g)
+    bill_depth_mm ~ s(body_mass_g, by = species),
+
   ),
-  data = penguins,
-  family = mvn(d = 2)
+  data = penguins
+  #family = mvn(d = 2)
 )->model
+```
+
+```{r}
+wormpredict(model, along = body_mass_g)
+```
+
+```{r}
+gam(
+  bill_length_mm ~ species + s(body_mass_g, by = species),
+  data = penguins
+)->model1
 ```
 
 ```{r}
@@ -238,4 +251,3 @@ predictions(brm0_mod,
   geom_point()+
   geom_path()
 ```
-
