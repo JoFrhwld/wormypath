@@ -251,3 +251,55 @@ predictions(brm0_mod,
   geom_point()+
   geom_path()
 ```
+
+## Sample
+
+```{r}
+library(tibble)
+library(dplyr)
+library(ggplot2)
+library(ggdist)
+library(wormypath)
+
+tibble(
+  time = runif(100, -10, 10),
+  x = rnorm(100, mean = (time^2)/20),
+  y = rnorm(100, mean = ((-time^3)/200)+3),
+  group = "A"
+) -> df1
+
+tibble(
+  time = runif(100, -10, 10),
+  x = rnorm(100, mean = (time^2)/20),
+  y = rnorm(100, mean = ((-time^3)/200)+20),
+  group = "B"
+) -> df2
+
+
+ggplot(
+  data = bind_rows(df1, df2),
+  aes(x = x, y = y, z = time, color = group)
+)+
+  geom_point(alpha = 0.1)+
+  stat_wormpath(n = 300)+
+  coord_fixed() 
+```
+
+```{r}
+library(palmerpenguins)
+```
+
+```{r}
+penguins |> 
+  ggplot(aes(bill_length_mm, bill_depth_mm, z = body_mass_g))+
+    geom_point()+
+    stat_wormpath(aes(color = after_stat(z)))
+```
+
+```{r}
+penguins |> 
+  ggplot(aes(bill_length_mm, bill_depth_mm, z = body_mass_g))+
+    geom_point()+
+    stat_wormpath(aes(color = after_stat(z)),
+                  formula = list(x ~ s(z), y ~ z))
+```

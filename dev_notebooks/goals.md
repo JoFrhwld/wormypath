@@ -269,3 +269,97 @@ predictions(brm0_mod,
 ```
 
 ![](goals_files/figure-commonmark/unnamed-chunk-16-1.png)
+
+## Sample
+
+``` r
+library(tibble)
+library(dplyr)
+```
+
+
+    Attaching package: 'dplyr'
+
+    The following object is masked from 'package:nlme':
+
+        collapse
+
+    The following objects are masked from 'package:stats':
+
+        filter, lag
+
+    The following objects are masked from 'package:base':
+
+        intersect, setdiff, setequal, union
+
+``` r
+library(ggplot2)
+library(ggdist)
+```
+
+
+    Attaching package: 'ggdist'
+
+    The following objects are masked from 'package:brms':
+
+        dstudent_t, pstudent_t, qstudent_t, rstudent_t
+
+``` r
+library(wormypath)
+
+tibble(
+  time = runif(100, -10, 10),
+  x = rnorm(100, mean = (time^2)/20),
+  y = rnorm(100, mean = ((-time^3)/200)+3),
+  group = "A"
+) -> df1
+
+tibble(
+  time = runif(100, -10, 10),
+  x = rnorm(100, mean = (time^2)/20),
+  y = rnorm(100, mean = ((-time^3)/200)+20),
+  group = "B"
+) -> df2
+
+
+ggplot(
+  data = bind_rows(df1, df2),
+  aes(x = x, y = y, z = time, color = group)
+)+
+  geom_point(alpha = 0.1)+
+  stat_wormpath(n = 300)+
+  coord_fixed() 
+```
+
+![](goals_files/figure-commonmark/unnamed-chunk-17-1.png)
+
+``` r
+library(palmerpenguins)
+```
+
+``` r
+penguins |> 
+  ggplot(aes(bill_length_mm, bill_depth_mm, z = body_mass_g))+
+    geom_point()+
+    stat_wormpath(aes(color = after_stat(z)))
+```
+
+    Warning: Removed 2 rows containing non-finite values (`stat_wormpath()`).
+
+    Warning: Removed 2 rows containing missing values (`geom_point()`).
+
+![](goals_files/figure-commonmark/unnamed-chunk-19-1.png)
+
+``` r
+penguins |> 
+  ggplot(aes(bill_length_mm, bill_depth_mm, z = body_mass_g))+
+    geom_point()+
+    stat_wormpath(aes(color = after_stat(z)),
+                  formula = list(x ~ s(z), y ~ z))
+```
+
+    Warning: Removed 2 rows containing non-finite values (`stat_wormpath()`).
+
+    Warning: Removed 2 rows containing missing values (`geom_point()`).
+
+![](goals_files/figure-commonmark/unnamed-chunk-20-1.png)
