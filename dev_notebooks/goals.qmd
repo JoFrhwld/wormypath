@@ -268,6 +268,25 @@ ggplot(
   aes(x = x, y = y, z = time, color = group)
 )+
   geom_point(alpha = 0.1)+
-  stat_wormpath(aes(colour_ramp = after_stat(z)))+
+  stat_wormpath(n = 300)+
   coord_fixed() 
+```
+
+```{r}
+library(palmerpenguins)
+```
+
+```{r}
+penguins |> 
+  ggplot(aes(bill_length_mm, bill_depth_mm, z = body_mass_g))+
+    geom_point()+
+    stat_wormpath(aes(color = after_stat(z)))
+```
+
+```{r}
+penguins |> 
+  ggplot(aes(bill_length_mm, bill_depth_mm, z = body_mass_g))+
+    geom_point()+
+    stat_wormpath(aes(color = after_stat(z)),
+                  formula = list(x ~ s(z), y ~ z))
 ```
