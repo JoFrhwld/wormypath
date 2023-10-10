@@ -12,6 +12,9 @@ stat_wormpath <- function(
     key_glyph = draw_key_wormpath,
     ...,
     n = 100,
+    formula = NULL,
+    method = NULL,
+    method.args = list(),
     na.rm = FALSE,
     show.legend = NA,
     inherit.aes = TRUE
@@ -26,6 +29,9 @@ stat_wormpath <- function(
     inherit.aes = inherit.aes,
     params = list2(
       n = n,
+      formula = formula,
+      method = method,
+      method.args = list(),
       lineend = lineend,
       key_glyph = key_glyph,
       ...
@@ -33,34 +39,41 @@ stat_wormpath <- function(
   )
 }
 
-#' @import grid
-draw_key_wormpath <- function (data, params, size)
-{
-  if (is.null(data$linetype)) {
-    data$linetype <- 0
-  }
-  else {
-    data$linetype[is.na(data$linetype)] <- 0
-  }
-  segmentsGrob(
-    0.1, 0.5, 0.9, 0.5,
-    gp = gpar(col = alpha(data$colour %||%
-                            data$fill %||% "black",
-                          data$alpha),
-              fill = alpha(params$arrow.fill %||%
-                             data$colour %||%
-                             data$fill %||% "black",
-                           data$alpha),
-              lwd = (data$linewidth %||% 0.5) * .pt,
-              lty = data$linetype %||% 1,
-              lineend = "butt"),
-    arrow = params$arrow)
-}
 
 #' @importFrom ggplot2 ggproto
 StatWormpath <- ggproto("StatWormpath", Stat,
-  compute_group = function(data, scales, n = 100, na.rm = FALSE){
-    fit_worm(data = data, n = n)
+  setup_params = function(data, params){
+    if(is.null(params$method)){
+      params$method <- "gam"
+    }
+
+    if(is.null(params$formula)){
+      if(identical(params$method, "gam")){
+        params$formula <- list(x ~ s(z), y ~ s(z))
+      }
+    }
+
+    if((!"family" %in% params$method.args) & identical(params$method, "gam")){
+      params$method.args <- append(
+        params$method.args,
+        list(family = mvn(d = 2))
+      )
+    }
+
+    if(identical(params$method, "gam")){
+      params$method <- ggplot2:::gam_method()
+    }
+
+    params
+  },
+
+  compute_group = function(data, scales, n = 100,
+                           method = NULL,
+                           formula = NULL,
+                           method.args = list(),
+                           na.rm = FALSE){
+    fit_worm(data = data, n = n, method = method, formula = formula,
+             method.args = method.args)
   },
 
   required_aes = c("x", "y", "z"),
@@ -71,13 +84,19 @@ StatWormpath <- ggproto("StatWormpath", Stat,
 
 #' @import mgcv
 #' @import marginaleffects
-fit_worm <- function(data, n){
-  model <- gam(
-    list(x ~ s(z),
-         y ~ s(z)),
+fit_worm <- function(data, n, method, formula, method.args){
+  if(is.character(method)){
+    method = match.fun(method)
+  }
+
+  model <-inject(method(
+    formula,
     data = data,
-    family = mvn(d = 2)
-  )
+    !!!method.args
+  ))
+
+  ## Here is where a general
+  ## wormfit(model) would go
 
   predgrid <- datagrid(
     model = model,
@@ -130,4 +149,29 @@ fit_worm <- function(data, n){
   model_pred |>
     dplyr::left_join(model_slopes, by = dplyr::join_by(rowid == rowid))
 
+}
+
+
+#' @import grid
+draw_key_wormpath <- function (data, params, size)
+{
+  if (is.null(data$linetype)) {
+    data$linetype <- 0
+  }
+  else {
+    data$linetype[is.na(data$linetype)] <- 0
+  }
+  segmentsGrob(
+    0.1, 0.5, 0.9, 0.5,
+    gp = gpar(col = alpha(data$colour %||%
+                            data$fill %||% "black",
+                          data$alpha),
+              fill = alpha(params$arrow.fill %||%
+                             data$colour %||%
+                             data$fill %||% "black",
+                           data$alpha),
+              lwd = (data$linewidth %||% 0.5) * .pt,
+              lty = data$linetype %||% 1,
+              lineend = "butt"),
+    arrow = params$arrow)
 }
